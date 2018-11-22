@@ -69,12 +69,37 @@ def join_Lobby(lobby_id):
 					chat_packet.ParseFromString(data)
 					#print("{}: {}".format(chat_packet.player.name,chat_packet.message))
 					print(chat_packet.player.name + ": " + chat_packet.message)
+				elif tcp.type == tcp.CONNECT:
+					connect_packet.ParseFromString(data)
+					print(connect_packet.player.name + " has joined the lobby")
+				elif tcp.type == tcp.DISCONNECT:
+					connect_packet.ParseFromString(data)
+					print(connect_packet.player.name + " has disconnected from lobby")
+				elif tcp.type == tcp.PLAYER_LIST:
+					playerList_packet = tcp.PlayerListPacket()
+					playerList_packet.ParseFromString(data)
+					for players in playerList_packet.player_list:
+						print("List of Players in the lobby")
+						print(playerList_packet.player.name)
+
 			else:
 				message = sys.stdin.readline().rstrip('\n')
-				chat_packet.type = tcp.CHAT
-				chat_packet.message = message
-				chat_packet.player.name = player.name
-				s.sendall(chat_packet.SerializeToString())
+
+				if message == "exit":
+					disconnect_packet = tcp.DisconnectPacket()
+					disconnect_packet.type = tcp.DISCONNECT
+					s.sendall(disconnect_packet.SerializeToString())
+					return
+				elif message == "player-list":
+					playerList_packet = tcp.PlayerListPacket()
+					playerList_packet.type = tcp.PLAYER_LIST
+					s.sendall(playerList_packet.SerializeToString())
+				else:
+					chat_packet.type = tcp.CHAT
+					chat_packet.message = message
+					chat_packet.player.name = player.name
+					s.sendall(chat_packet.SerializeToString())
+
 				# os.system("stty -echo")
 				# sys.stdout.write(player.name + ": ")
 				# sys.stdout.write(message)
@@ -104,4 +129,5 @@ while True:
 	elif choice == 3:
 		os.system('clear')
 		break
+s.shutdown(socket.SHUT_WR)
 s.close()
