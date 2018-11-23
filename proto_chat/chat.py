@@ -53,8 +53,6 @@ player.name = input("Player name: ")
 def join_Lobby(lobby_id):
 	print("Lobby ID: {}".format(lobby_id))
 	connect_packet = Connect(player.name,player.id,lobby_id)
-	print(connect_packet)
-	# os.system("stty -echo")
 	while True:
 		sockets = [sys.stdin,s]
 		read_sockets,write_sockets,error_sockets = select.select(sockets,[],[])
@@ -64,10 +62,8 @@ def join_Lobby(lobby_id):
 			if socket == s:
 				data = s.recv(1024)
 				tcp.ParseFromString(data)
-				print(tcp)
 				if tcp.type == tcp.CHAT:
 					chat_packet.ParseFromString(data)
-					#print("{}: {}".format(chat_packet.player.name,chat_packet.message))
 					print(chat_packet.player.name + ": " + chat_packet.message)
 				elif tcp.type == tcp.CONNECT:
 					connect_packet.ParseFromString(data)
@@ -90,7 +86,8 @@ def join_Lobby(lobby_id):
 					disconnect_packet = tcp.DisconnectPacket()
 					disconnect_packet.type = tcp.DISCONNECT
 					s.sendall(disconnect_packet.SerializeToString())
-					return
+					print("You are disconnected. Bye!")
+					sys.exit(0)
 				elif message == "player-list":
 					playerList_packet = tcp.PlayerListPacket()
 					playerList_packet.type = tcp.PLAYER_LIST
@@ -101,29 +98,18 @@ def join_Lobby(lobby_id):
 					chat_packet.player.name = player.name
 					s.sendall(chat_packet.SerializeToString())
 
-				# os.system("stty -echo")
-				# sys.stdout.write(player.name + ": ")
-				# sys.stdout.write(message)
-				# sys.stdout.flush()
-
 
 while True:
 
 	choice = Menu()
 
 	if choice == 1:
-
-		# createLobby_packet = tcp.CreateLobbyPacket()
-		# createLobby_packet.type = tcp.CREATE_LOBBY
-		# createLobby_packet.max_players = 4
-		# s.sendall(createLobby_packet.SerializeToString())
-		# data = s.recv(1024)
-		# createLobby_packet.ParseFromString(data)
+		os.system('clear')
 		createLobby_packet = create_Lobby()
-		#connect_packet = Connect(player.name,player.id,createLobby_packet.lobby_id)
 		join_Lobby(createLobby_packet.lobby_id)
 
 	elif choice == 2:
+		os.system('clear')
 		lobby_id = input("Lobby ID: ")
 		join_Lobby(lobby_id)
 
