@@ -129,5 +129,4 @@ while True:
 	elif choice == 3:
 		os.system('clear')
 		break
-s.shutdown(socket.SHUT_WR)
 s.close()
