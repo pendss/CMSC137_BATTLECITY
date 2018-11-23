@@ -34,8 +34,8 @@ def Connect(name,player_id,lobby_id):
 	connect_packet.lobby_id = lobby_id
 	s.sendall(connect_packet.SerializeToString())
 	data = s.recv(1024)
-	tcp.ParseFromString(data)
-	return tcp
+	connect_packet.ParseFromString(data)
+	return connect_packet
 
 def create_Lobby():
 	createLobby_packet = tcp.CreateLobbyPacket()
@@ -64,7 +64,7 @@ def join_Lobby(lobby_id):
 			if socket == s:
 				data = s.recv(1024)
 				tcp.ParseFromString(data)
-
+				print(tcp)
 				if tcp.type == tcp.CHAT:
 					chat_packet.ParseFromString(data)
 					#print("{}: {}".format(chat_packet.player.name,chat_packet.message))
@@ -73,14 +73,15 @@ def join_Lobby(lobby_id):
 					connect_packet.ParseFromString(data)
 					print(connect_packet.player.name + " has joined the lobby")
 				elif tcp.type == tcp.DISCONNECT:
-					connect_packet.ParseFromString(data)
+					disconnect_packet = tcp.DisconnectPacket()
+					disconnect_packet.ParseFromString(data)
 					print(connect_packet.player.name + " has disconnected from lobby")
 				elif tcp.type == tcp.PLAYER_LIST:
 					playerList_packet = tcp.PlayerListPacket()
 					playerList_packet.ParseFromString(data)
+					print("List of Players in the lobby")
 					for players in playerList_packet.player_list:
-						print("List of Players in the lobby")
-						print(playerList_packet.player.name)
+						print(players.name)
 
 			else:
 				message = sys.stdin.readline().rstrip('\n')
