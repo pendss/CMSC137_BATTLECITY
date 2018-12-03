@@ -5,6 +5,9 @@ import select
 import player_pb2
 import tcp_packet_pb2
 from threading import Thread
+import tkinter
+from tkinter import *
+from tkinter import simpledialog
 
 HOST = '202.92.144.45'
 PORT = 80
@@ -16,7 +19,11 @@ s.connect((HOST,PORT))
 #create tcp packet
 tcp = tcp_packet_pb2.TcpPacket()
 
+def raise_frame(frame,choice):
+	# if choice==1:
+	# 	createLobby_Action()
 
+	frame.tkraise()
 
 def Menu():
 	print("[1] - Create Lobby")
@@ -24,7 +31,6 @@ def Menu():
 	print("[3] - Exit")
 	x = input("choice: ")
 	return int(x)
-
 
 def Connect(name,player_id,lobby_id):
 	connect_packet = tcp.ConnectPacket()
@@ -40,15 +46,15 @@ def Connect(name,player_id,lobby_id):
 def create_Lobby():
 	createLobby_packet = tcp.CreateLobbyPacket()
 	createLobby_packet.type = tcp.CREATE_LOBBY
-	createLobby_packet.max_players = int(input("Max Players: "))
+
+	maxplay = simpledialog.askinteger("Input","Max Players", parent=top)
+
+	createLobby_packet.max_players = maxplay
 
 	s.sendall(createLobby_packet.SerializeToString())
 	data = s.recv(1024)
 	createLobby_packet.ParseFromString(data)
 	return createLobby_packet
-
-player = player_pb2.Player()
-player.name = input("Player name: ")
 
 def join_Lobby(lobby_id):
 	print("Lobby ID: {}".format(lobby_id))
@@ -105,6 +111,46 @@ def join_Lobby(lobby_id):
 				# sys.stdout.write(message)
 				# sys.stdout.flush()
 
+def createLobby_Action():
+	createLobby_packet = create_Lobby()
+	join_Lobby(createLobby_packet.lobby_id)
+
+
+top = tkinter.Tk()
+top.title("Chat")
+# top.geometry('1366x720')
+
+menuFrame = Frame(top)
+chatFrame = Frame(top)
+
+for frame in (menuFrame, chatFrame):
+	frame.grid(row=0,column=0,sticky='news')
+
+name = simpledialog.askstring("Input", "Player Name", parent=top)
+
+player = player_pb2.Player()
+player.name = name
+
+greeting = "Hi "+player.name+"!"
+
+welcome = Label(menuFrame, text=greeting)
+welcome.pack()
+
+createLobbyButton = Button(menuFrame, text="Create Lobby", command=lambda:raise_frame(chatFrame,1))
+createLobbyButton.pack(fill=X)
+
+connectButton = Button(menuFrame, text="Connect")
+connectButton.pack(fill=X)
+
+exitButton = Button(menuFrame, text="Exit")
+exitButton.pack(fill=X)
+
+backButton = Button(chatFrame, text="Main Menu", command=lambda:raise_frame(menuFrame,0)).pack()
+
+raise_frame(menuFrame,0)
+
+
+top.mainloop()
 
 while True:
 
@@ -112,12 +158,6 @@ while True:
 
 	if choice == 1:
 
-		# createLobby_packet = tcp.CreateLobbyPacket()
-		# createLobby_packet.type = tcp.CREATE_LOBBY
-		# createLobby_packet.max_players = 4
-		# s.sendall(createLobby_packet.SerializeToString())
-		# data = s.recv(1024)
-		# createLobby_packet.ParseFromString(data)
 		createLobby_packet = create_Lobby()
 		#connect_packet = Connect(player.name,player.id,createLobby_packet.lobby_id)
 		join_Lobby(createLobby_packet.lobby_id)
@@ -129,4 +169,6 @@ while True:
 	elif choice == 3:
 		os.system('clear')
 		break
+
+
 s.close()
