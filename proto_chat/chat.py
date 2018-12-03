@@ -15,15 +15,18 @@ PORT = 80
 #create socket and connect to server
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((HOST,PORT))
+sentm = ""
 
 #create tcp packet
 tcp = tcp_packet_pb2.TcpPacket()
 
 def raise_frame(frame,choice):
-	# if choice==1:
-	# 	createLobby_Action()
-
 	frame.tkraise()
+	if choice==1:
+		createLobby_Action()
+	elif choice==2:
+		connect_Action()
+
 
 def Menu():
 	print("[1] - Create Lobby")
@@ -57,11 +60,30 @@ def create_Lobby():
 	return createLobby_packet
 
 def join_Lobby(lobby_id):
-	print("Lobby ID: {}".format(lobby_id))
+	lid = "Lobby ID: {}".format(lobby_id)
+	lobbyLabel = Label(chatFrame, text=lid)
+	lobbyLabel.pack()
+	print(lid)
+
 	connect_packet = Connect(player.name,player.id,lobby_id)
+	connectedLabel = Label(chatFrame, text=connect_packet, fg="green")
+	connectedLabel.pack()
 	print(connect_packet)
+
+	scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
+	msg_list.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
+	msg_list.pack()
+
 	# os.system("stty -echo")
 	while True:
+		# my_msg = tkinter.StringVar()  # For the messages to be sent.
+		# my_msg.set("Type your messages here.")
+		# send_button = tkinter.Button(chatFrame, text="Send", command=send)
+		send_button.pack(side=BOTTOM)
+		# entry_field = tkinter.Entry(chatFrame, textvariable=my_msg)
+		# entry_field.bind("<Return>", send)
+		entry_field.pack(side=BOTTOM)
+
 		sockets = [sys.stdin,s]
 		read_sockets,write_sockets,error_sockets = select.select(sockets,[],[])
 
@@ -73,20 +95,25 @@ def join_Lobby(lobby_id):
 
 				if tcp.type == tcp.CHAT:
 					chat_packet.ParseFromString(data)
-					#print("{}: {}".format(chat_packet.player.name,chat_packet.message))
 					print(chat_packet.player.name + ": " + chat_packet.message)
+					msg = chat_packet.player.name + ": " + chat_packet.message
+					msg_list.insert(tkinter.END, msg)
 				elif tcp.type == tcp.CONNECT:
 					connect_packet.ParseFromString(data)
-					print(connect_packet.player.name + " has joined the lobby")
+					print(player.name + " has joined the lobby")
+					msg = player.name + " has joined the lobby"
+					msg_list.insert(tkinter.END, msg)
 				elif tcp.type == tcp.DISCONNECT:
 					connect_packet.ParseFromString(data)
-					print(connect_packet.player.name + " has disconnected from lobby")
+					print(player.name + " has disconnected from lobby")
+					msg = player.name + " has disconnected from lobby"
+					msg_list.insert(tkinter.END, msg)
 				elif tcp.type == tcp.PLAYER_LIST:
 					playerList_packet = tcp.PlayerListPacket()
 					playerList_packet.ParseFromString(data)
 					for players in playerList_packet.player_list:
 						print("List of Players in the lobby")
-						print(playerList_packet.player.name)
+						print(players.name)
 
 			else:
 				message = sys.stdin.readline().rstrip('\n')
@@ -115,6 +142,15 @@ def createLobby_Action():
 	createLobby_packet = create_Lobby()
 	join_Lobby(createLobby_packet.lobby_id)
 
+def connect_Action():
+	lobby_id = simpledialog.askstring("Input", "Lobby ID", parent=top)
+	join_Lobby(lobby_id)
+
+def send(event=None):  # event is passed by binders.
+    """Handles sending of messages."""
+    sentm = my_msg.get()
+    my_msg.set("")  # Clears input field.
+
 
 top = tkinter.Tk()
 top.title("Chat")
@@ -125,6 +161,24 @@ chatFrame = Frame(top)
 
 for frame in (menuFrame, chatFrame):
 	frame.grid(row=0,column=0,sticky='news')
+
+raise_frame(menuFrame,0)
+
+backButton = Button(chatFrame, text="Main Menu", command=lambda:raise_frame(menuFrame,0)).pack()
+
+scrollbar = tkinter.Scrollbar(chatFrame)
+msg_list = Listbox(chatFrame, height=15, width=50, yscrollcommand=scrollbar.set)
+# scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
+# msg_list.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
+# msg_list.pack()
+
+my_msg = tkinter.StringVar()  # For the messages to be sent.
+my_msg.set("Type your messages here.")
+entry_field = tkinter.Entry(chatFrame, textvariable=my_msg)
+entry_field.bind("<Return>", send)
+# entry_field.pack(side=BOTTOM)
+send_button = tkinter.Button(chatFrame, text="Send", command=send)
+# send_button.pack(side=BOTTOM)
 
 name = simpledialog.askstring("Input", "Player Name", parent=top)
 
@@ -139,15 +193,13 @@ welcome.pack()
 createLobbyButton = Button(menuFrame, text="Create Lobby", command=lambda:raise_frame(chatFrame,1))
 createLobbyButton.pack(fill=X)
 
-connectButton = Button(menuFrame, text="Connect")
+connectButton = Button(menuFrame, text="Connect", command=lambda:raise_frame(chatFrame,2))
 connectButton.pack(fill=X)
 
 exitButton = Button(menuFrame, text="Exit")
 exitButton.pack(fill=X)
 
-backButton = Button(chatFrame, text="Main Menu", command=lambda:raise_frame(menuFrame,0)).pack()
 
-raise_frame(menuFrame,0)
 
 
 top.mainloop()
@@ -157,9 +209,7 @@ while True:
 	choice = Menu()
 
 	if choice == 1:
-
 		createLobby_packet = create_Lobby()
-		#connect_packet = Connect(player.name,player.id,createLobby_packet.lobby_id)
 		join_Lobby(createLobby_packet.lobby_id)
 
 	elif choice == 2:
