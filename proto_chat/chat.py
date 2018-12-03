@@ -70,20 +70,8 @@ def join_Lobby(lobby_id):
 	connectedLabel.pack()
 	print(connect_packet)
 
-	scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
-	msg_list.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
-	msg_list.pack()
-
 	# os.system("stty -echo")
 	while True:
-		# my_msg = tkinter.StringVar()  # For the messages to be sent.
-		# my_msg.set("Type your messages here.")
-		# send_button = tkinter.Button(chatFrame, text="Send", command=send)
-		send_button.pack(side=BOTTOM)
-		# entry_field = tkinter.Entry(chatFrame, textvariable=my_msg)
-		# entry_field.bind("<Return>", send)
-		entry_field.pack(side=BOTTOM)
-
 		sockets = [sys.stdin,s]
 		read_sockets,write_sockets,error_sockets = select.select(sockets,[],[])
 
@@ -133,11 +121,6 @@ def join_Lobby(lobby_id):
 					chat_packet.player.name = player.name
 					s.sendall(chat_packet.SerializeToString())
 
-				# os.system("stty -echo")
-				# sys.stdout.write(player.name + ": ")
-				# sys.stdout.write(message)
-				# sys.stdout.flush()
-
 def createLobby_Action():
 	createLobby_packet = create_Lobby()
 	join_Lobby(createLobby_packet.lobby_id)
@@ -162,25 +145,24 @@ chatFrame = Frame(top)
 for frame in (menuFrame, chatFrame):
 	frame.grid(row=0,column=0,sticky='news')
 
-raise_frame(menuFrame,0)
+name = simpledialog.askstring("Input", "Player Name", parent=top)
 
 backButton = Button(chatFrame, text="Main Menu", command=lambda:raise_frame(menuFrame,0)).pack()
 
 scrollbar = tkinter.Scrollbar(chatFrame)
 msg_list = Listbox(chatFrame, height=15, width=50, yscrollcommand=scrollbar.set)
-# scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
-# msg_list.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
-# msg_list.pack()
+scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
+msg_list.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
+msg_list.pack()
 
 my_msg = tkinter.StringVar()  # For the messages to be sent.
 my_msg.set("Type your messages here.")
 entry_field = tkinter.Entry(chatFrame, textvariable=my_msg)
 entry_field.bind("<Return>", send)
-# entry_field.pack(side=BOTTOM)
+entry_field.pack()
 send_button = tkinter.Button(chatFrame, text="Send", command=send)
-# send_button.pack(side=BOTTOM)
+send_button.pack()
 
-name = simpledialog.askstring("Input", "Player Name", parent=top)
 
 player = player_pb2.Player()
 player.name = name
@@ -199,9 +181,7 @@ connectButton.pack(fill=X)
 exitButton = Button(menuFrame, text="Exit")
 exitButton.pack(fill=X)
 
-
-
-
+raise_frame(menuFrame,0)
 top.mainloop()
 
 while True:
