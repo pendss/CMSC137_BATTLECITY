@@ -70,6 +70,7 @@ def join_Lobby(lobby_id):
 	connectedLabel.pack()
 	print(connect_packet)
 
+	top.update()
 	# os.system("stty -echo")
 	while True:
 		sockets = [sys.stdin,s]
@@ -120,6 +121,8 @@ def join_Lobby(lobby_id):
 					chat_packet.message = message
 					chat_packet.player.name = player.name
 					s.sendall(chat_packet.SerializeToString())
+
+			top.update()
 
 def createLobby_Action():
 	createLobby_packet = create_Lobby()
