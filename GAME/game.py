@@ -14,6 +14,7 @@ from Waiting import Waiting
 from settings import *
 from sprites import *
 from animation import *
+from Player import Player
 
 import json
 
@@ -77,7 +78,33 @@ class Game:
 
     def update(self):
         # Game Loop - Update
-        self.all_sprites.update()
+        try:
+          self.all_sprites.update()
+
+          for player in self.players.values():
+            collision = pg.sprite.spritecollide(player, self.bricks, False)
+            print(collision)
+            if player.vel.y > 0:
+              if collision:
+                player.pos[1] = collision.rect.top + 1
+                player.vel[1] = 0
+            elif player.vel.y < 0:
+              if collision:
+                player.pos[1] = collision.rect.bottom - 1
+                player.vel[1] = 0 
+            elif player.vel.x > 0:
+              if collision:
+                player.pos[0] = collision.rect.right + 1
+                player.vel[0] = 0
+            elif player.vel.x < 0:
+              if collision:
+                player.pos[0] = collision.rect.left - 1
+                player.vel[0] = 0
+        except:
+          print("error")
+          quit()
+
+
 
     def events(self):
         # Game Loop -
@@ -155,14 +182,15 @@ class Game:
                   self.all_sprites.add(brick)
                   self.bricks.add(brick)
 
-            # for name, values in players.items():
-            #   x = float(values['x'])
-            #   y = float(values['y'])
-            #   health = int(values['health'])
-            #   move = values['move']
-            #   player = Player(self, name, [x,y], move, health)
-            #   self.players[name] = player
-            #   self.all_sprites.add(player)
+            for name, values in players.items():
+              x = float(values['x'])
+              y = float(values['y'])
+              health = int(values['health'])
+              move = values['move']
+              color = values['color']
+              player = Player(self, name, [x,y], health, color)
+              self.players[name] = player
+              self.all_sprites.add(player)
             if not self.chat_init:
               self.chat_lobby = Chat(self)
               self.chat_lobby.Connect(self.name, lobby_id)

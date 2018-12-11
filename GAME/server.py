@@ -28,33 +28,37 @@ while True:
         player_count += 1
 
         if player_count == 1:
-            x = '50'
-            y = '50'
+            x = '300'
+            y = '300'
             move = 'down'
+            color = 'blue'
         elif player_count == 2:
             x = '600'
             y = '50'
             move ='left'
+            color = 'red'
         elif player_count == 3:
             x = '50'
             y = '400'
             move = 'right'
+            color = 'green'
         elif player_count == 4:
             x = '600'
             y = '400'
             move = 'up'
-
+            color = 'orange'
         players[string[1]] = {
             'health': '100',
             'x': x,
             'y': y,
-            'move': move
+            'move': move,
+            'color': color
         }
 
     elif request == 'start':
         data = 'none'
         data = str.encode(data)
-        if len(players) == 2:
+        if len(players) == 1:
             if not created_chat:
                 created_chat = True
                 chat = Chat()
